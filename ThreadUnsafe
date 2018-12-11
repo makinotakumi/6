@@ -1,0 +1,182 @@
+
+public class ThreadUnsafe {
+
+	public static void main(String[] args) {
+		Account account = new Account();
+		Bank bank = new Bank(account);
+		Thread thread1 = new Thread(bank);
+		Thread thread2 = new Thread(bank);
+
+		thread1.start();
+		thread2.start();
+
+		try {
+			thread1.join();
+			thread2.join();
+		} catch (InterruptedException ie) {}
+
+		System.out.println("balance = " + account.getBalance());
+	}
+}
+
+public class Account {
+	private int balance;
+
+	public Account() {
+		this.balance = 0;
+	}
+
+	public  void deposit(int money) {
+		synchronized (this) {
+			this.balance += money;
+		}
+	}
+
+	public int getBalance() {
+		return this.balance;
+	}
+}
+
+public class Bank implements Runnable {
+
+	private Account account;
+
+	public Bank(Account account) {
+		this.account = account;
+	}
+
+	public Account getAccount() {
+		return this.account;
+	}
+
+	@Override
+	public void run() {
+		for (int i = 0; i < 1000; i++) {
+			try {
+				Thread.sleep((long) Math.random());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			account.deposit(1);
+		}
+	}
+
+}
+
+public class CountDownThread implements Runnable{
+	private int startTime;
+
+	/**
+	 * 指定した名前と開始秒数で初期化するコンストラクタ
+	 * @param name	スレッド名
+	 * @param startTime	開始秒数
+	 */
+	public CountDownThread(String name, int startTime) {
+		// スレッド名を設定
+		Thread.currentThread().setName(name);
+		// 開始秒数を設定
+		setStartTime(startTime);
+	}
+
+	/**
+	 * 開始秒数を設定するセッター
+	 * @param startTime	開始秒数
+	 */
+	public void setStartTime(int startTime) {
+		if (startTime <= 0) {
+			throw new IllegalArgumentException("不正な値：" + startTime);
+		}
+		this.startTime = startTime;
+	}
+
+	@Override
+	public void run() {
+		System.out.println(Thread.currentThread().getName() + "：カウントダウン開始！");
+		for (int i = startTime; i >= 0; i--) {
+			System.out.println(Thread.currentThread().getName() + "：" + i);
+			try {
+				Thread.sleep(1000);	// 1秒間スリープ
+			} catch (InterruptedException e) {}
+		}
+		System.out.println(Thread.currentThread().getName() + "：カウントダウン終了！");
+	}
+
+}
+
+public class Exercise0601 {
+
+	/**
+	 * カウントダウン処理
+	 * @param name	処理名
+	 * @param startTime	開始秒数
+	 */
+	public static void countDown(String name, int startTime) {
+		System.out.println(name + "：カウントダウン開始！");
+		for (int i = startTime; i >= 0; i--) {
+			System.out.println(name + "：" + i);
+			try {
+				Thread.sleep(1000);	// 1秒間スリープ
+			} catch (InterruptedException e) {}
+		}
+		System.out.println(name + "：カウントダウン終了！");
+	}
+
+	/**
+	 * Example0601：カウントダウン処理1と処理2を並列実行させるように変更せよ
+	 */
+	public static void main(String[] args) {
+
+		CountDownThread tread1 = new CountDownThread("処理1", 5);
+		CountDownThread tread2 = new CountDownThread("処理2", 10);
+		// 処理1
+		tread1.start();
+		// 処理2
+		tread2.start();
+	}
+
+}
+
+public class Exercise0602 {
+
+	/**
+	 * カウントダウン処理
+	 * @param name	処理名
+	 * @param startTime	開始秒数
+	 */
+	public static void countDown(String name, int startTime) {
+		System.out.println(name + "：カウントダウン開始！");
+		for (int i = startTime; i >= 0; i--) {
+			System.out.println(name + "：" + i);
+			try {
+				Thread.sleep(1000);	// 1秒間スリープ
+			} catch (InterruptedException e) {}
+		}
+		System.out.println(name + "：カウントダウン終了！");
+	}
+
+	/**
+	 * Example0601：カウントダウン処理1と処理2を並列実行させるように変更せよ
+	 */
+	public static void main(String[] args) {
+
+		CountDownThread cdt1 = new CountDownThread("処理1", 5);
+		CountDownThread cdt2 = new CountDownThread("処理2", 10);
+
+		Thread thread1 = new Thread(cdt1,"thread1");
+		Thread thread2 = new Thread(cdt2,"thread2");
+		// 処理1
+		thread1.start();
+		// 処理2
+		thread2.start();
+		try {
+			thread1.join();
+			thread2.join();
+		}catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+
+
+		System.out.println("プログラムを終了します");
+	}
+
+}
